@@ -1,13 +1,16 @@
-import {useEffect, useState} from "react";
+import {useContext, useEffect, useState} from "react";
 import {characters, defaultHero, period_month} from "../utils/constants.ts";
 import {HeroInfo} from "../utils/types";
 import {useParams} from "react-router";
 import ErrorPage from "./ErrorPage.tsx";
+import {HeaderContext} from "../utils/context.ts";
 
 
 const AboutMe = () => {
     const [hero, setHero] = useState<HeroInfo>();
     const {heroId = defaultHero} = useParams();
+    const context = useContext(HeaderContext);
+    const ChangeHeader = context?.changeHeader;
 
 if (!(heroId in characters)){
     return <ErrorPage/>
@@ -17,6 +20,9 @@ if (!(heroId in characters)){
             const hero = JSON.parse(localStorage.getItem(heroId)!);
         if (hero && ((Date.now() - hero.timestamp) < period_month)) {
             setHero(hero.payload);
+            if (ChangeHeader) {
+                ChangeHeader(hero.payload.name)
+            }
         } else {
             fetch(characters[heroId].url)
                 .then(response => response.json())
@@ -32,6 +38,9 @@ if (!(heroId in characters)){
                         eye_color: data.eye_color
                     };
                     setHero(info);
+                    if (ChangeHeader) {
+                        ChangeHeader(info.name)
+                    }
                     localStorage.setItem(heroId, JSON.stringify({
                         payload: info,
                         timestamp: Date.now()
